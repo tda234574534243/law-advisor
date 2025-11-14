@@ -1,3 +1,14 @@
+# Chatbot Helpers
+
+Small helper modules used by the chatbot pipeline (learning, sentiment, NLG, conversation state). These modules are not a full LLM but provide lightweight functionality used by `backend.bot`.
+
+Key modules
+- `learning_engine.py` — learning storage and simple retrieval of learned answers.
+- `sentiment_analyzer.py` — crude sentiment & urgency detection used to adjust tone.
+- `nlg_engine.py` — small paraphrasing/emoji utilities.
+
+Usage
+- These modules are imported by `backend.bot.answer_question()` and generally require no direct invocation.
 # 🤖 Chatbot Module
 
 **Core AI conversation engine with self-learning capabilities**

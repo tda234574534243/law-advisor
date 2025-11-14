@@ -1,3 +1,21 @@
+# Backend
+
+This folder holds server-side logic for the Law Advisor application: DB connection, ingestion, indexing and the retrieval-based chatbot logic.
+
+Key modules
+- `db.py` — MongoDB primary connector with TinyDB UTF‑8 fallback. Provides `ensure_connection()`, `insert_passage()`, `text_search()`.
+- `search.py` — retrieval stack (keyword search, TF‑IDF and optional embedding search). Use `retrieve(query, k, mode)`.
+- `indexer.py` — builds TF‑IDF (`build_tfidf()`) and optional embeddings (`build_embeddings()`).
+- `ingest.py`, `ingest_file.py`, `ingest_all.py` — scripts to ingest JSON law files into MongoDB or TinyDB and rebuild indices.
+- `bot.py` — compose answers from retrieved passages, includes scenario analysis and confidence scoring.
+
+How to rebuild the TF‑IDF index
+1. Ensure DB has up-to-date passages (run `python backend/ingest_file.py <path>` or `python backend/ingest_all.py`).
+2. Run `python -c "from backend.indexer import build_tfidf; build_tfidf()"`.
+
+Notes & gotchas
+- Avoid importing `backend` at application import time if you rely on explicit ingestion. `backend/ingest.py` performs file I/O — ingestion runs only when invoked intentionally.
+- TinyDB files are stored in `data/` and are read/written using UTF‑8 storage wrappers to support Vietnamese.
 # 🤖 Backend Module
 
 Core search, database, and retrieval components for the law query system.

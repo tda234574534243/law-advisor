@@ -1,103 +1,105 @@
-#file: backend/ingest.py
+# -*- coding: utf-8 -*-
 """
-ingest.py - Đọc dữ liệu Luật vào cơ sở dữ liệu (MongoDB hoặc TinyDB)
-Tự động load cấu hình từ file .env
+Ingest a specific JSON law file (scraper/data/văn_bản_pháp_luật_2024.json)
+into MongoDB if available, otherwise into TinyDB.
+Also rebuilds TF-IDF index after ingest.
 """
-
 import json
 import os
+import sys
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
-from tinydb import TinyDB, Query
 
-# ===== LOAD CONFIG =====
-load_dotenv()
-
-DATA_DIR = os.getenv("DATA_DIR", "data")
-LAW_FILE = os.getenv("LAW_FILE")
-TINYDB_PATH = os.getenv("TINYDB_PATH", os.path.join(DATA_DIR, "laws_tinydb.json"))
-
-MONGO_URI = os.getenv("MONGO_URI")
-MONGO_DB = os.getenv("MONGO_DB", "phapluat")
-MONGO_COLLECTION = os.getenv("MONGO_COLLECTION", "laws")
+# Ensure project root on sys.path so we can import config
+sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
+from config import DATA_DIR, LAW_FILE, TINYDB_PATH, MONGO_URI, DB_NAME, COLLECTION
 
 try:
     from pymongo import MongoClient
     from pymongo.errors import PyMongoError
-except ImportError:
-    MongoClient = None
+    MONGO_AVAILABLE = True
+except Exception:
+    MONGO_AVAILABLE = False
 
+# target file
+LAW_FILE = LAW_FILE or "văn_bản_pháp_luật_2024.json"
+scraper_dir = Path(__file__).parent.parent / 'scraper' / 'data'
+src = scraper_dir / LAW_FILE
+if not src.exists():
+    # fallback: pick first JSON in scraper/data
+    candidates = list(scraper_dir.glob('*.json'))
+    if candidates:
+        # Prefer filenames that look like laws
+        preferred = [c for c in candidates if any(x in c.name.lower() for x in ('luat', 'phap', 'văn', 'van'))]
+        if preferred:
+            src = preferred[0]
+        else:
+            src = candidates[0]
+        print(f"LAW_FILE not found; using scraper JSON: {src}")
+    else:
+        print(f"Source not found: {src}")
+        raise SystemExit(1)
 
-def ingest_raw_file():
-    """Đọc file JSON luật và lưu vào MongoDB hoặc TinyDB"""
-    json_path = os.path.join(DATA_DIR, LAW_FILE)
-    if not os.path.exists(json_path):
-        raise FileNotFoundError(f"Không tìm thấy file: {json_path}")
+print(f"Reading law file: {src}")
+text = src.read_text(encoding='utf-8')
+data = json.loads(text)
 
-    print(f"[+] Đọc dữ liệu từ: {json_path}")
-    text = Path(json_path).read_text(encoding="utf-8")
-    data = json.loads(text)
+# Prepare document
+doc = {
+    "tieu_de_luat": data.get('tieu_de_luat') or data.get('tieu_de') or data.get('title') or 'Unnamed Law',
+    "nguon": data.get('nguon') or data.get('url') or '',
+    "tong_so_dieu": data.get('tong_so_dieu') or len(data.get('noi_dung', [])),
+    "thoi_gian_ingest": datetime.now().isoformat(),
+    "noi_dung": data.get('noi_dung', [])
+}
 
-    # Thử dùng MongoDB
-    if MongoClient and MONGO_URI:
-        try:
-            client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
-            db = client[MONGO_DB]
-            col = db[MONGO_COLLECTION]
-
-            # Index text (không dùng ngôn ngữ tiếng Việt)
-            col.create_index(
-                [("tieu_de_luat", "text"),
-                 ("noi_dung.tieu_de", "text"),
-                 ("noi_dung.noi_dung", "text")],
-                name="law_text_index",
-                default_language="none"
-            )
-
-            # Xóa bản cũ cùng tên
-            col.delete_many({"tieu_de_luat": data["tieu_de_luat"]})
-
-            # Insert mới
-            col.insert_one({
-                "tieu_de_luat": data["tieu_de_luat"],
-                "nguon": data["nguon"],
-                "tong_so_dieu": data["tong_so_dieu"],
-                "thoi_gian_ingest": datetime.now().isoformat(),
-                "noi_dung": data["noi_dung"]
-            })
-
-            print(f"[✓] Đã import {data['tieu_de_luat']} vào MongoDB ({MONGO_DB}.{MONGO_COLLECTION})")
-            return
-        except PyMongoError as e:
-            print(f"⚠️ Lỗi MongoDB: {e} — fallback sang TinyDB.")
-        except Exception as e:
-            print(f"⚠️ Không kết nối được MongoDB: {e}")
-
-    # Fallback sang TinyDB
-    os.makedirs(DATA_DIR, exist_ok=True)
-    db = TinyDB(TINYDB_PATH, encoding="utf-8")
-    table = db.table("laws")
-
-    table.remove(Query().tieu_de_luat == data["tieu_de_luat"])
-    table.insert({
-        "tieu_de_luat": data["tieu_de_luat"],
-        "nguon": data["nguon"],
-        "tong_so_dieu": data["tong_so_dieu"],
-        "thoi_gian_ingest": datetime.now().isoformat(),
-        "noi_dung": data["noi_dung"]
-    })
-
-    print(f"[✓] Đã lưu dữ liệu vào TinyDB: {TINYDB_PATH}")
-
-
-if __name__ == "__main__":
-    print("=" * 60)
-    print("INGEST LAW DATABASE (from .env config)")
-    print("=" * 60)
+# Try MongoDB
+if MONGO_AVAILABLE and MONGO_URI:
     try:
-        ingest_raw_file()
-        print("\n[✔] Hoàn tất ingest dữ liệu.")
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
+        client.server_info()
+        db = client[DB_NAME]
+        col = db[COLLECTION]
+        # Remove old versions
+        col.delete_many({"tieu_de_luat": doc['tieu_de_luat']})
+        col.insert_one(doc)
+        print(f"Inserted into MongoDB: {DB_NAME}.{COLLECTION}")
     except Exception as e:
-        print(f"\n❌ Lỗi ingest: {e}")
-    print("=" * 60)
+        print("MongoDB not available or error:", e)
+        MONGO_AVAILABLE = False
+
+if not MONGO_AVAILABLE:
+    # Write to TinyDB fallback
+    from tinydb import TinyDB
+    from tinydb.storages import JSONStorage
+
+    class UTF8Storage(JSONStorage):
+        def __init__(self, path, **kwargs):
+            kwargs['encoding'] = 'utf-8'
+            super().__init__(path, **kwargs)
+
+    os.makedirs(DATA_DIR, exist_ok=True)
+    tiny_path = TINYDB_PATH or os.path.join(DATA_DIR, "tinydb.json")
+    dbt = TinyDB(tiny_path, storage=UTF8Storage)
+    table = dbt.table('laws')
+    # Remove similar title
+    table.remove(lambda r: r.get('tieu_de_luat') == doc['tieu_de_luat'])
+    table.insert(doc)
+    print(f"Inserted into TinyDB: {tiny_path}")
+
+# Rebuild TF-IDF index
+print('Rebuilding TF-IDF index...')
+try:
+    from backend.indexer import build_tfidf, build_embeddings
+    build_tfidf()
+    print('TF-IDF rebuild done.')
+    if os.getenv('USE_EMBEDDINGS', 'False').lower() in ('true', '1', 'yes'):
+        try:
+            build_embeddings()
+        except Exception as e:
+            print('Embeddings rebuild failed:', e)
+except Exception as e:
+    print('Error rebuilding index:', e)
+
+print('Ingest complete.')

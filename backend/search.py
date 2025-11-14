@@ -9,6 +9,7 @@ import re
 import json
 from dotenv import load_dotenv
 from tinydb import TinyDB, Query
+from config import TINYDB_PATH, DATA_DIR, MONGO_URI, DB_NAME, COLLECTION, DEFAULT_LANGUAGE
 
 try:
     from pymongo import MongoClient
@@ -20,12 +21,13 @@ except ImportError:
 # ===== LOAD CONFIG =====
 load_dotenv()
 
-DATA_DIR = os.getenv("DATA_DIR", "data")
-TINYDB_PATH = os.getenv("TINYDB_PATH", os.path.join(DATA_DIR, "laws_tinydb.json"))
-MONGO_URI = os.getenv("MONGO_URI")
-MONGO_DB = os.getenv("MONGO_DB", "phapluat")
-MONGO_COLLECTION = os.getenv("MONGO_COLLECTION", "laws")
-DEFAULT_LANGUAGE = os.getenv("DEFAULT_LANGUAGE", "english")
+# Ensure path defaults
+DATA_DIR = DATA_DIR or os.getenv("DATA_DIR", "data")
+TINYDB_PATH = TINYDB_PATH or os.path.join(DATA_DIR, "tinydb.json")
+MONGO_URI = MONGO_URI or os.getenv("MONGO_URI")
+DB_NAME = DB_NAME or os.getenv("MONGO_DB", "phapluat")
+COLLECTION = COLLECTION or os.getenv("MONGO_COLLECTION", "laws")
+DEFAULT_LANGUAGE = DEFAULT_LANGUAGE or os.getenv("DEFAULT_LANGUAGE", "english")
 
 
 # ===================== HELPER =====================
@@ -48,8 +50,9 @@ def connect_mongo():
     """Kết nối MongoDB"""
     try:
         client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=2000)
-        db = client[MONGO_DB]
-        col = db[MONGO_COLLECTION]
+        # Use the configured DB_NAME and COLLECTION variables
+        db = client[DB_NAME]
+        col = db[COLLECTION]
         client.admin.command("ping")
         return col
     except Exception as e:
@@ -74,8 +77,15 @@ def search_keyword(query, limit=10):
         except PyMongoError as e:
             print("⚠️ Mongo search error:", e)
 
-    # --- Fallback TinyDB search ---
-    db = TinyDB(TINYDB_PATH, encoding="utf-8")
+    # --- Fallback TinyDB search (use unified TINYDB_PATH with UTF-8) ---
+    from tinydb.storages import JSONStorage
+
+    class UTF8Storage(JSONStorage):
+        def __init__(self, path, **kwargs):
+            kwargs['encoding'] = 'utf-8'
+            super().__init__(path, **kwargs)
+
+    db = TinyDB(TINYDB_PATH, storage=UTF8Storage)
     table = db.table("laws")
     q = Query()
     data = table.all()

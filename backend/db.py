@@ -45,7 +45,15 @@ def ensure_connection():
         print("⚠️ MongoDB not available, falling back to TinyDB:", e)
         USE_MONGO = False
         os.makedirs("data", exist_ok=True)
-        db_tiny = TinyDB("data/tinydb.json")
+        # Ensure TinyDB uses UTF-8 to correctly read Vietnamese text
+        from tinydb.storages import JSONStorage
+
+        class UTF8Storage(JSONStorage):
+            def __init__(self, path, **kwargs):
+                kwargs['encoding'] = 'utf-8'
+                super().__init__(path, **kwargs)
+
+        db_tiny = TinyDB("data/tinydb.json", storage=UTF8Storage)
 
 
 def close_client():

@@ -1,3 +1,24 @@
+# Law Advisor (PhapLuatProject)
+
+Lightweight retrieval-based legal assistant for Vietnamese law. This repository contains the scraping, ingest, search and chatbot components used to index and query legal texts.
+
+Quick start
+- Create a `.env` file (see `.env` in repo) and ensure `MONGO_URI` (or TinyDB) is set.
+- Install dependencies: `pip install -r requirements.txt`.
+- Run the app: `python app.py` (Flask server on `http://127.0.0.1:8000`).
+
+Project layout (high level)
+- `app.py` — Flask web server and HTTP API.
+- `backend/` — server-side logic: DB, search, indexer, ingest, bot.
+- `scraper/` — HTML scraper and raw data processing.
+- `chatbot/` — smaller AI helpers (learning, sentiment, NLG).
+- `data/` — persistent data (TinyDB fallback, tfidf.joblib, exports).
+- `templates/` & `static/` — minimal frontend assets.
+- `tests/` — unit / integration smoke tests.
+
+If something looks wrong after changing `.env`, restart the server so the new environment values are picked up.
+
+For more information see the READMEs under each folder.
 # 🏛️ Hệ Thống Tra Cứu Pháp Luật Thông Minh v2.0
 
 **AI-Powered Vietnamese Law Query System with Self-Learning Chatbot**

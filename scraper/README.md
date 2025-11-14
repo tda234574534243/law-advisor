@@ -1,3 +1,16 @@
+# Scraper
+
+Contains the scraping utilities and raw HTML used to collect legal documents. Also includes small processors to clean and split law texts into searchable passages.
+
+Key files
+- `scraper.py` — primary scraping logic (fetch pages and extract text).
+- `fix_titles.py` — helper to clean titles and normalize filenames.
+- `data/` — input JSONs produced by the scraper (raw and processed). Check `scraper/data` for available law JSON files.
+
+How to run
+- Edit `scraper/scraper.py` to point to the target URL(s). Run `python scraper/scraper.py` to create or update JSON files in `scraper/data`.
+
+After scraping, use the ingest scripts in `backend/` to import processed JSON into the DB and rebuild indices.
 # 🕷️ Scraper Module
 
 Web scraper for Vietnamese law documents.

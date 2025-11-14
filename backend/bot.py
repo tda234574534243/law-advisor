@@ -21,6 +21,7 @@ import re
 import random
 from collections import defaultdict
 import json
+import os
 
 
 # Dynamic greeting system
@@ -401,7 +402,16 @@ def check_definition_exists_in_db(query_term: str) -> Tuple[bool, str]:
     """
     try:
         from tinydb import TinyDB
-        db = TinyDB("data/tinydb.json", encoding='utf-8')
+        from tinydb.storages import JSONStorage
+        from config import TINYDB_PATH, DATA_DIR
+
+        class UTF8Storage(JSONStorage):
+            def __init__(self, path, **kwargs):
+                kwargs['encoding'] = 'utf-8'
+                super().__init__(path, **kwargs)
+
+        tiny_path = TINYDB_PATH or os.path.join(DATA_DIR, 'tinydb.json')
+        db = TinyDB(tiny_path, storage=UTF8Storage)
         
         # Find Article 3 (Điều 3)
         articles = db.all()
@@ -889,9 +899,40 @@ def answer_question(query: str, k: int = 5, session_id: str = None, user_id: str
     # Collect sources
     sources = []
     for h in hits[:3]:
-        url = h.get('url') or h.get('nguon')
+        url = h.get('url') or h.get('nguon') or ''
+
+        # Try to extract article number and sub-number from multiple possible fields
+        article_num = h.get('dieu_so') or h.get('dieu') or None
+        sub = h.get('dieu_so_phu') or h.get('khoan') or h.get('khoản') or None
+
+        # Try parsing from section or doc_id if not present
+        if not article_num:
+            sec = str(h.get('section') or '')
+            m = re.search(r"[Đd]i[eê]u\s*(\d+)", sec)
+            if m:
+                article_num = m.group(1)
+        if not article_num:
+            docid = str(h.get('doc_id') or '')
+            m = re.search(r"#(\d+)", docid)
+            if m:
+                article_num = m.group(1)
+
+        title = h.get('title') or h.get('tieu_de_luat') or h.get('tieu_de') or ''
+
+        parts = []
+        if article_num:
+            parts.append(f"Điều {article_num}")
+        if sub:
+            parts.append(f"khoản {sub}")
+        if title:
+            parts.append(title)
+
+        src_label = ' - '.join(parts) if parts else (url or title)
         if url:
-            sources.append(url)
+            # append URL for traceability
+            src_label = f"{src_label} — {url}" if src_label else url
+
+        sources.append(src_label)
     
     # ============ GENERATE ANSWER ============
     # Generate answer using AI-like composition with scenario analysis
