@@ -1,0 +1,17 @@
+Flask>=2.2
+pymongo>=4.0
+dnspython
+beautifulsoup4
+requests
+lxml
+python-dotenv
+scikit-learn
+nltk
+tqdm
+tinydb
+joblib
+sentence-transformers>=2.2.0
+faiss-cpu
+pyvi
+# New dependencies for learning & NLP
+numpy>=1.20

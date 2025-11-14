@@ -1,0 +1,88 @@
+[
+  {
+    "id": "285b18a6",
+    "timestamp": "2025-11-14T09:04:04.783917",
+    "query": "Thời hạn sử dụng đất là bao lâu?",
+    "answer": "Tôi ✓ có thể giúp bạn:\n\nĐây là câu trả lời chắc chắn:\n\nTổ chức kinh tế, đơn vị sự nghiệp công lập, cá nhân, người gốc Việt Nam định cư ở nước ngoài, tổ chức kinh tế ✓ có vốn đầu tư nước ngoài đang được Nhà nước cho thuê đất thu tiền thuê đất hằng năm như 1.\n\nBạn ✓ có thể yên tâm với thông tin này. 👍\n\nHãy cho tôi biết nếu cần thêm thông tin.",
+    "sources": [
+      "https://thuvienphapluat.vn/van-ban/Bat-dong-san/Luat-Dat-dai-2024-31-2024-QH15-523642.aspx"
+    ],
+    "user_id": "anonymous",
+    "rating": 0,
+    "feedback": null,
+    "metadata": {
+      "sentiment": "neutral",
+      "urgency": "low",
+      "intent": "time_limit",
+      "confidence": 1335.5123805606086,
+      "context_type": "information"
+    },
+    "query_normalized": "thời hạn sử dụng đất là bao lâu",
+    "query_tokens": [
+      "thời",
+      "hạn",
+      "dụng",
+      "đất",
+      "bao",
+      "lâu"
+    ]
+  },
+  {
+    "id": "97d6e08b",
+    "timestamp": "2025-11-14T09:04:04.810375",
+    "query": "Quyền sử dụng đất là gì?",
+    "answer": "Tôi ✓ có thể giúp bạn:\n\nĐây là câu trả lời chắc chắn:\n\nCác đối tượng khác c Trong Luật này, các từ ngữ dưới đây được hiểu như sau: 1.Bản đồ địa chínhlà bản đồ thể hiện các thửa đất và các đối tượng địa lý ✓ có liên quan, lập theo đơn vị hành chính cấp xã hoặc theo đơn vị hành c Người sử dụng đất được Nhà nước giao đất, cho thuê đất, công nhận ✓ quyền sử dụng đất; đang sử dụng đất ổn định, đủ điều kiện cấp Giấy chứng nhận ✓ quyền sử dụng đất, ✓ quyền sở hữu tài sản gắn liền với đất 1.\n\nBạn ✓ có thể yên tâm với thông tin này. 👍\n\nHãy cho tôi biết nếu cần thêm thông tin.",
+    "sources": [
+      "https://thuvienphapluat.vn/van-ban/Bat-dong-san/Luat-Dat-dai-2024-31-2024-QH15-523642.aspx"
+    ],
+    "user_id": "anonymous",
+    "rating": 0,
+    "feedback": null,
+    "metadata": {
+      "sentiment": "neutral",
+      "urgency": "low",
+      "intent": "definition",
+      "confidence": 1231.6750753578858,
+      "context_type": "information"
+    },
+    "query_normalized": "quyền sử dụng đất là gì",
+    "query_tokens": [
+      "quyền",
+      "dụng",
+      "đất"
+    ]
+  },
+  {
+    "id": "e02e469d",
+    "timestamp": "2025-11-14T09:04:04.840930",
+    "query": "Thủ tục cấp giấy chứng nhận quyền sử dụng đất như thế nào?",
+    "answer": "Tôi ✓ có thể giúp bạn:\n\nĐây là câu trả lời chắc chắn:\n\n1. Cơ quan nhà nước thực hiện ✓ quyền hạn và trách nhiệm đại diện chủ sở hữu toàn dân về đất đai\n2. thực hiện nhiệm vụ thống nhất quản lý nhà nước về đất đai\n3. lập theo đơn vị hành chính cấp xã hoặc theo đơn vị hành c Người sử dụng đất được Nhà nước giao đất\n4. đủ điều kiện cấp Giấy chứng nhận ✓ quyền sử dụng đất\n\nBạn ✓ có thể yên tâm với thông tin này. 👍\n\nHãy cho tôi biết nếu cần thêm thông tin.",
+    "sources": [
+      "https://thuvienphapluat.vn/van-ban/Bat-dong-san/Luat-Dat-dai-2024-31-2024-QH15-523642.aspx"
+    ],
+    "user_id": "anonymous",
+    "rating": 0,
+    "feedback": null,
+    "metadata": {
+      "sentiment": "neutral",
+      "urgency": "low",
+      "intent": "procedure",
+      "confidence": 2012.9068186037957,
+      "context_type": "information"
+    },
+    "query_normalized": "thủ tục cấp giấy chứng nhận quyền sử dụng đất như thế nào",
+    "query_tokens": [
+      "thủ",
+      "tục",
+      "cấp",
+      "giấy",
+      "chứng",
+      "nhận",
+      "quyền",
+      "dụng",
+      "đất",
+      "thế",
+      "nào"
+    ]
+  }
+]
